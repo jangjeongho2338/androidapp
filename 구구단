@@ -1,0 +1,9 @@
+```dart
+void main() {
+  for (int dan = 1; dan <= 9; dan++) {
+    print('$dan단');
+    for (int gob = 1; gob <= 9; gob++) {
+      print('$dan x $gob = ${dan * gob}');
+    }
+  }
+}
