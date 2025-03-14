@@ -1,4 +1,3 @@
-```dart
 void main() {
   for (int dan = 1; dan <= 9; dan++) {
     print('$dan단');
