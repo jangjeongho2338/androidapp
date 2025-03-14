@@ -1,0 +1,12 @@
+import 'package:intl/intl.dart';
+
+void main() {
+  
+  String input = '2025-03-14';
+  
+  DateTime date = DateTime.parse(input);
+  
+  String dayOfWeek = DateFormat('EEEE').format(date);
+  
+  print(dayOfWeek);
+}
