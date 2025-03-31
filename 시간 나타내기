@@ -1,0 +1,65 @@
+//추가해야 하는 패키지
+import 'dart:async';  // Timer 사용을 위한 패키지
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // 날짜 및 시간 포맷을 위한 패키지
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '현재 시각',
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  DateTime _currentTime = DateTime.now(); // 시각을 업데이트할 수 있도록 DateTime 객체로 초기화
+
+  @override
+  void initState() {
+    super.initState();
+    Timer.periodic(Duration(seconds: 1), (timer) { // 1초마다 시각을 갱신하는 타이머 설정
+      setState(() {
+        _currentTime = DateTime.now();
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) { // 시간을 포맷하기 위한 DateFormat
+    String formattedDate = DateFormat('yyyy-MM-dd').format(_currentTime); 
+    String formattedTime = DateFormat('a hh:mm:ss').format(_currentTime); //한글로 하려면 옆에 한글로 만드는 'ko_KR' 넣기
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('현재 시각'),
+        centerTitle: true, // 앱바 타이틀을 중앙에 배치
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              formattedDate,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), //날짜 스타일 
+            ),
+            Text(
+              formattedTime,
+              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold), //시간 스타일 
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
