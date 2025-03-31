@@ -8,4 +8,9 @@ dart언어를 이용해 여러가지 코드 작성
 ![상자 출력](https://github.com/user-attachments/assets/fab290be-e320-4ca6-a28b-020c17cb9f04)
 ![날짜 출력](https://github.com/user-attachments/assets/079029a6-d056-4c36-aeac-b33e4ab3ab95)
 
+## 3. Flutter 시작
+Flutter을 이용해서 현재 시간을 화면에 초단위로 출력하기
+![시간 초단위로 출력](https://github.com/user-attachments/assets/8ea2d66b-e351-459e-a2c6-dc0ad1fb4687)
+
+intl을 사용해야 되기 때문에 intl: ^0.18.0 코드 입력
 
