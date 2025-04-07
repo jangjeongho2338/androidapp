@@ -11,7 +11,7 @@ class CalculatorUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.white,
         body: Center(
           child: Container(
             width: 300, // 계산기 고정 너비
