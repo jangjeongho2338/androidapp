@@ -1,0 +1,73 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Container(
+            width: 300,
+            height: 250,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+            ),
+            child: Column(
+              children: [
+                // 윗부분 (작은 사각형들)
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    children: [
+                      // 빨간색
+                      Expanded(
+                        flex: 2,
+                        child: Container(color: Colors.red),
+                      ),
+                      // 파랑, 검정, 주황
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Container(color: Colors.blue),
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(color: Colors.black),
+                                  ),
+                                  Expanded(
+                                    child: Container(color: Colors.orange),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // 아래 노란색
+                Expanded(
+                  flex: 3,
+                  child: Container(color: Colors.yellow),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
