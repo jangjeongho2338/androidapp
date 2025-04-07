@@ -14,3 +14,6 @@ Flutter을 이용해서 현재 시간을 화면에 초단위로 출력하기
 
 intl을 사용해야 되기 때문에 intl: ^0.18.0 코드 입력
 
+## 4. 상자 쪼개기
+Flutter을 이용해서 상자 출력
+![상자 쪼개기](https://github.com/user-attachments/assets/ea00335a-84f9-4e00-98f4-6b479e39c63b)
