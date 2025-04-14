@@ -1,0 +1,95 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MaterialApp(
+    home: FirstStatefulPage(),
+  ));
+}
+
+// Stateful 위젯
+class FirstStatefulPage extends StatefulWidget {
+  @override
+  State<FirstStatefulPage> createState() => _FirstStatefulPageState();
+}
+
+class _FirstStatefulPageState extends State<FirstStatefulPage> {
+  @override
+  void initState() {
+    super.initState();
+    print('FirstPage initState()');
+  }
+
+  @override
+  void dispose() {
+    print('FirstPage dispose()');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('FirstPage build()');
+    return Scaffold(
+      appBar: AppBar(title: const Text('First Page')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            final person = Person(name: '홍길동', age: 20);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SecondStatefulPage(person: person),
+              ),
+            );
+          },
+          child: const Text('다음 페이지로'),
+        ),
+      ),
+    );
+  }
+}
+
+class SecondStatefulPage extends StatefulWidget {
+  final Person person;
+  const SecondStatefulPage({required this.person});
+
+  @override
+  State<SecondStatefulPage> createState() => _SecondStatefulPageState();
+}
+
+class _SecondStatefulPageState extends State<SecondStatefulPage> {
+  @override
+  void initState() {
+    super.initState();
+    print('SecondPage initState()');
+  }
+
+  @override
+  void dispose() {
+    print('SecondPage dispose()');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('SecondPage build()');
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.person.name)),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('이전 페이지로'),
+        ),
+      ),
+    );
+  }
+}
+
+class Person {
+  final String name;
+  final int age;
+
+  Person({required this.name, required this.age});
+}
+
