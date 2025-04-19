@@ -1,0 +1,159 @@
+1. 플러더 개발 환경 준비하기
+
+1-1. 플러터 앱 개발 방식
+	- 다트 언어를 사용하며 다양한 플랫폼에서 구동 가능한 앱을 만드는 방식
+1-2. 플러터의 특징
+	- 크로스플랫폼 지원, 고성능, 사용자 정의 UI구성 용이, 빠른 개발, 강력한 커뮤니티 및 생태계
+
+2. 다트 문법
+2-1. 변수 타입 : int(정수),String(문자열), double(실수), bool(참,거짓) 변수타입 추론 가능시 var 사용가능
+2-2. 상수(final,const) : 값이 한번 설정되면 바꿀수 없는 값 final은 동작중 값이 고정된다,  const는 컴파일 시점에서 값이 고정됨
+2-3. 타입 검사, 형변환
+    - 타입검사 (is, is!)
+	- is : 같은 타입이면 true,다른 타입이면 false
+	- is! : 다른 타입이면 true, 같은 타입이면 false
+	- var num = 42;
+	  print(num is int);  // true (num은 int 타입)
+	  print(num is String); false
+   	  print(num is! int);  // false (num은 int 타입이므로 false)
+	  print(num is! String);  // true 
+    - 형변환 (as)
+	- as는 다른 타입일시 오류 발생 성공시 그냥 넘어감 틀리면 오류 걸고 종료
+	- var c - 30.5
+	  int d = c as int; // 오류 발생
+2-4 : 익명함수, 람다식
+    - 익명 함수는 함수 코드를 변수 값처럼 취급해 변수에 담기 가능하게함
+	- var list = [1,2,3]
+	  list.forEach((item){ //forEach는 리스트에 컬렉션제공하는 메서드
+	      print(item); // 각항목 출력
+	  });
+	- 여기선 (item){조건식} 이 익명함수임 리스트(list)를 변수에 담는 역할을 함
+    - 람다식 함수형 프로그램을 줄이는데 사용됨
+	- num add(int a, int b){
+	     return a + b;
+	  } // 람다식 X
+	- num add(int a, int b) => a+b; //람다식으로 리턴 값 바로 받아옴
+	- var list = [1,2,3]
+	- list.forEach((item){ //forEach는 리스트에 컬렉션제공하는 메서드
+	      print(item); // 각항목 출력
+	  }); //람다식 X
+	- list.forEach((item) => print(item))
+
+타입 검사 ~ 람다식 까지 예제
+//monster는 attack 할 수있따
+abstract class Monster {
+  void attack();
+}
+
+//goblin는 고릅을 할 수있따
+class Goblin implements Monster {
+  @override
+  void attack() => print('고릅때리기');
+}
+
+abstract class Flyable {
+  void fly();
+}
+
+//bat는 박릅을 할 수있따
+class Bat implements Monster {
+  @override
+  void attack() => print('박릅때리기');
+
+  void fly() => print('날고때리기');
+}
+
+void main() {
+  Goblin m1 = Goblin();
+  m1.attack();
+  Bat m2 = Bat();
+  m2.attack();
+  m2.fly();
+
+  print('');
+
+  List<Monster> monsters = [m1, m2];
+  monsters.forEach((m) {
+    m.attack();
+
+    if (m is Bat) {
+      (m as Bat).fly();
+    }
+  });
+}
+
+2-5 선택 매개변수
+    - 선택적으로 함수에 전달하고자 하는 매개변수의 경우 {}로 표시
+	- void somthing({String name, int age}) {}의 경우 name과 age를 받아도 되고 안받으면 null처리 name등 이름 명시
+2-6 클래스의 정의
+    - 객체를 생성할 수 있는 설계도, 설계도에 의해 만들어진 형태를 객체 또는 클래스를 인스턴스화 했다고한다
+2-7 상속 vs 인터페이스
+    - 상속
+	- 목적 : 부모 클래스의 기능을 상속받아 자식 클래스에서 확장 및 수정가능
+	- 구현 : 상속 받으므로 super.가능(오버라이드)
+	- 코드 재사용 : 기능을 물려 받고 메서드만 수정
+	- 유연성 : 다중 상속 지원 X, 한 클래스만 상속 가능
+	- 의존성 : 부모 클래스에 의존, 부모의 변경이 자식에게 영향 미침
+	- 다형성 : 부모 클래스에 의존
+    - 인터페이스
+	- 목적 : 여러 클래스가 동일한 인터 페이스를 구현하여 동일한 메서드를 구현하도록 강제
+	- 구현 : 첫번째 override만 인터페이스 되면 사용가능 아래 것들은 그냥 사용됨
+	- 코드 재사용 : ()이므로 구현 해야함
+	- 유연성 : 다중 인터페이스 구현가능, 더 유연함
+	- 의존성 : 인터페이스만 구현 함로 부모의 변경과 관계없음
+	- 다형성 : 메서드만구현하면 다양하게 가능
+2-8 List,Map,Set표기법
+    - List
+	- 순서가 있는 연속된 자료를 표현할 때 사용함
+	- List<int> lotto = [5,6,11]
+	- lotto.add(3); //3을 추가 lotto [5,6,11,3]
+	- print(item[3]); // 0~3까지 가능[]안쓰면 리스트 모두 출력
+	- lotto.remove(5); //5을 없앰
+	- print(items
+	-   ..add(6) // 'items' 리스트에 6 추가
+	    ..remove(6) // 'items' 리스트에서 값 6 제거
+	);
+    - Map
+	- 키와 값으로 쌍 지어진 사전 형태의 자료 구조를 표현할 때 사용함 Dictionary라고도 함
+	- Map<String, String> countryMap = {'한국': '서울', '일본': '도쿄', '중국': '북경'};
+	- countryMap['인도'] = '인디아'; //인도 추가
+	- countryMap.remove('인도') //인도 삭제
+    - Set
+	- 중복되지 않는 요소를 순서없이 저장 (중복X, 순서X, 인덱스로 접근 X, 빠른 검색 O)
+	- Set<int> setNums = {1, 2, 3, 4, 5, 6};
+	- setNums.remove(3); //3삭제
+	- print(setNums.contains(4)); //4값 있는지 검색 있을시 true
+2-9 함수형 프로그래밍 특징 : 일급객체, forEach, where, map
+    - 일급객체
+	- 함수를 변수에 저장 가능
+	- 함수를 함수 인자에 넘길수 있음
+	- 함수를 함수의 반환 값으로 사용할수 있음
+	- void sayHello() {
+		print('안녕!');
+	  }
+	  void main() {
+		var greet = sayHello;  
+		greet();
+	  } //여기선 sayHello가 일급 객체
+    - forEach
+	- List의 목록을 조회
+    - where
+	- 조건을 필터링 할 때 사용하는 함수
+    - map
+	- 반복되는 값을 다른 형태로 변환하는 함수
+2-10 컬렉션 if 또는 컬렉션 for
+    - 컬렉션 if
+	- bool promoActive = true;
+	- var result = [1,2,3,4,5,if(promoActive) 6]; //true일 경우 6넣음
+	  => [1, 2, 3, 4, 5, 6]
+    - 컬렉션 for
+	- void main(){
+		var listOfInts = [1,2,3]; //1,2,3
+		var listOfStrings = [//문자열 리스트로 변경
+		    '#0', //새로운 리스트 처음은 '#0'
+		    for(var i in listOfInts) '#$i' // '#$i' '#1', '#2', '#3'
+		];
+		print(listOfStrings); // 리스트 출력
+	  }
+
+3.
