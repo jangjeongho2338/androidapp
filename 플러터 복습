@@ -1,0 +1,314 @@
+1. 플러더 개발 환경 준비하기
+	- flutter doctor : 개발 환경을 점검
+1-1. 플러터 앱 개발 방식
+	- 다트 언어를 사용하며 다양한 플랫폼에서 구동 가능한 앱을 만드는 방식
+1-2. 플러터의 특징
+	- 크로스플랫폼 지원, 고성능, 사용자 정의 UI구성 용이, 빠른 개발, 강력한 커뮤니티 및 생태계
+
+2. 다트 문법
+2-1. 변수 타입 : int(정수),String(문자열), double(실수), bool(참,거짓) 변수타입 추론 가능시 var 사용가능
+2-2. 상수(final,const) : 값이 한번 설정되면 바꿀수 없는 값 
+    - final : 동작중(런타임) 값이 고정된다
+    - const : 컴파일 시점에서 값이 고정됨(값이 미리 정해짐 요일 같은 실행중 불러오기 안댐)
+2-3. 타입 검사, 형변환
+    - 타입검사 (is, is!)
+	- is : 같은 타입이면 true,다른 타입이면 false
+	- is! : 다른 타입이면 true, 같은 타입이면 false
+	- var num = 42;
+	  print(num is int);  // true (num은 int 타입)
+	  print(num is String); false
+   	  print(num is! int);  // false (num은 int 타입이므로 false)
+	  print(num is! String);  // true 
+    - 형변환 (as)
+	- as는 다른 타입일시 오류 발생 성공시 그냥 넘어감 틀리면 오류 걸고 종료
+	- var c - 30.5
+	  int d = c as int; // 오류 발생
+2-4 : 익명함수, 람다식
+    - 익명 함수는 함수 코드를 변수 값처럼 취급해 변수에 담기 가능하게함
+	- var list = [1,2,3]
+	  list.forEach((item){ //forEach는 리스트에 컬렉션제공하는 메서드
+	      print(item); // 각항목 출력
+	  });
+	- 여기선 (item){조건식} 이 익명함수임 리스트(list)를 변수에 담는 역할을 함
+    - 람다식 함수형 프로그램을 줄이는데 사용됨
+	- num add(int a, int b){
+	     return a + b;
+	  } // 람다식 X
+	- num add(int a, int b) => a+b; //람다식으로 리턴 값 바로 받아옴
+	- var list = [1,2,3]
+	- list.forEach((item){ //forEach는 리스트에 컬렉션제공하는 메서드
+	      print(item); // 각항목 출력
+	  }); //람다식 X
+	- list.forEach((item) => print(item))
+
+타입 검사 ~ 람다식 까지 예제
+//monster는 attack 할 수있따
+abstract class Monster {
+  void attack();
+}
+
+//goblin는 고릅을 할 수있따
+class Goblin implements Monster {
+  @override
+  void attack() => print('고릅때리기');
+}
+
+abstract class Flyable {
+  void fly();
+}
+
+//bat는 박릅을 할 수있따
+class Bat implements Monster {
+  @override
+  void attack() => print('박릅때리기');
+
+  void fly() => print('날고때리기');
+}
+
+void main() {
+  Goblin m1 = Goblin();
+  m1.attack();
+  Bat m2 = Bat();
+  Bat m1 = Bat();
+  m2.attack();
+  m2.fly();
+
+
+  print('');
+
+  List<Monster> monsters = [m1, m2];
+  monsters.forEach((m) {
+    m.attack();
+    if (m is Bat) {
+      (m as Bat).fly();
+    }
+  });
+}
+
+2-5 선택 매개변수
+    - 선택적으로 함수에 전달하고자 하는 매개변수의 경우 {}로 표시
+	- void somthing({String name, int age}) {}의 경우 name과 age를 받아도 되고 안받으면 null처리 name등 이름 명시
+2-6 클래스의 정의
+    - 객체를 생성할 수 있는 설계도, 설계도에 의해 만들어진 형태를 객체 또는 클래스를 인스턴스화 했다고한다
+2-7 상속 vs 인터페이스
+    - 상속
+	- 목적 : 부모 클래스의 기능을 상속받아 자식 클래스에서 확장 및 수정가능
+	- 구현 : 상속 받으므로 super.가능(오버라이드)
+	- 코드 재사용 : 기능을 물려 받고 메서드만 수정
+	- 유연성 : 다중 상속 지원 X, 한 클래스만 상속 가능
+	- 의존성 : 부모 클래스에 의존, 부모의 변경이 자식에게 영향 미침
+	- 다형성 : 부모 클래스에 의존
+    - 인터페이스
+	- 목적 : 여러 클래스가 동일한 인터 페이스를 구현하여 동일한 메서드를 구현하도록 강제
+	- 구현 : 첫번째 override만 인터페이스 되면 사용가능 아래 것들은 그냥 사용됨
+	- 코드 재사용 : ()이므로 구현 해야함
+	- 유연성 : 다중 인터페이스 구현가능, 더 유연함
+	- 의존성 : 인터페이스만 구현 함로 부모의 변경과 관계없음
+	- 다형성 : 메서드만구현하면 다양하게 가능
+2-8 List,Map,Set표기법
+    - List
+	- 순서가 있는 연속된 자료를 표현할 때 사용함
+	- List<int> lotto = [5,6,11]
+	- lotto.add(3); //3을 추가 lotto [5,6,11,3]
+	- print(item[3]); // 0~3까지 가능[]안쓰면 리스트 모두 출력
+	- lotto.remove(5); //5을 없앰
+	- print(items
+	-   ..add(6) // 'items' 리스트에 6 추가
+	    ..remove(6) // 'items' 리스트에서 값 6 제거
+	);
+    - Map
+	- 키와 값으로 쌍 지어진 사전 형태의 자료 구조를 표현할 때 사용함 Dictionary라고도 함
+	- Map<String, String> countryMap = {'한국': '서울', '일본': '도쿄', '중국': '북경'};
+	- countryMap['인도'] = '인디아'; //인도 추가
+	- countryMap.remove('인도') //인도 삭제
+    - Set
+	- 중복되지 않는 요소를 순서없이 저장 (중복X, 순서X, 인덱스로 접근 X, 빠른 검색 O)
+	- Set<int> setNums = {1, 2, 3, 4, 5, 6};
+	- setNums.remove(3); //3삭제
+	- print(setNums.contains(4)); //4값 있는지 검색 있을시 true
+2-9 함수형 프로그래밍 특징 : 일급객체, forEach, where, map
+    - 일급객체
+	- 함수를 변수에 저장 가능
+	- 함수를 함수 인자에 넘길수 있음
+	- 함수를 함수의 반환 값으로 사용할수 있음
+	- void sayHello() {
+		print('안녕!');
+	  }
+	  void main() {
+		var greet = sayHello;  
+		greet();
+	  } //여기선 sayHello가 일급 객체
+    - forEach
+	- List의 목록을 조회
+    - where
+	- 조건을 필터링 할 때 사용하는 함수
+    - map
+	- 반복되는 값을 다른 형태로 변환하는 함수
+2-10 컬렉션 if 또는 컬렉션 for
+    - 컬렉션 if
+	- bool promoActive = true;
+	- var result = [1,2,3,4,5,if(promoActive) 6]; //true일 경우 6넣음
+	  => [1, 2, 3, 4, 5, 6]
+    - 컬렉션 for
+	- void main(){
+		var listOfInts = [1,2,3]; //1,2,3
+		var listOfStrings = [//문자열 리스트로 변경
+		    '#0', //새로운 리스트 처음은 '#0'
+		    for(var i in listOfInts) '#$i' // '#$i' '#1', '#2', '#3'
+		];
+		print(listOfStrings); // 리스트 출력
+	  }
+list comprehension : 간결한 문법으로 새로운 리스트를 생성하는 방법
+
+3. 프로젝트 구조와 앱 구조
+
+3-1 pubspec.yaml
+    - pubspec.yaml 파일은 Dart 및 Flutter 프로젝트에서 패키지 메타데이터와 의존성을 정의 하는데 사용되는 중요한 파일 구성
+	- name = 패키지 이름
+	- description = 앱에 대한 간단한 설명
+	- version = 앱의 버전
+	- environment = Dart SDK의 버전 조건을 명시
+	- dependencies = 앱 실행에 필요한 외부 패키지 목록
+	- dev_dependencies = 개발 테스트 할때만 필요한 패키지(패키지 도구등)
+	- flutter = flutter관련 설정(assets, fonts등)
+	- 함수 정의 조건문이나 반복문 위젯 구성등은 정의 안됨
+3-2 샘플 앱의 기본구조에서 출제
+    - StatelessWidget의 기본 개념 (사진)
+	- 클래스의 상태가 없는(상태가 변하지 않는) 위젯을 정의하는데 사용
+	- 렌더링 효율성이 좋음(불필요한 작업 많이 없이 빠르게 UI띄우기가 가능)
+	- 상태(시간이 지나면 바뀔수 있는값) : 없음(불변)(내부에 변하는 데이터가 없음 ++같은)
+	- 재빌트 조건 : 외부에서 데이터 변경시
+	- 주 용도 : 정적인 UI(텍스트,아이콘,이미지)
+    - StatefulWidget의 기본 개념 
+	- 동작하는 상태(state)를 관리해야 하는 UI요소를 표현할때 사용
+	- 동적 데이터 처리에 사용
+	- 상태(시간이 지나면 바뀔수 있는값) : 있음(변할 수 있음)
+	- 재빌드 조건 : 내부 상태 변경시
+	- 주 용도 : 동적인 UI(버튼 클릭,입력등)
+재빌트 조건 : UI가 바뀌려면 위젯을 새로 만들어야함 ex) count++;상태가 바뀔시 pop.post도 포함
+
+4. 기본 위젯
+
+4-1 화면 배치에 쓰는 위젯
+    - Container : width, height, padding, margin, child 속성(너비, 높이, 여백, child로 자식 위젯)
+    - Columm : 수직 방향으로 위젯들 표시, children속성(여러 위젯을 포함하는 리스트)
+    - Row : 수평 방향으로 위젯들 배치, children속성(여러 위젯을 포함하는 리스트)
+    - Stack : 위젯을 순서대로 겹치게함
+    - SingleChildScrollView : 화면 크기를 넘어가면 스크롤이 생기게함
+	- Column : 스크롤 기능 구현
+	- ListBody : 그냥 단순 나열, 스크롤X
+    - ListView : 스크롤 가능한 리스트를 감싸는 위젯
+    - ListTile : 그 위젯에 들어갈 개별 항목들(타이틀,서브타이틀, 아이콘)
+    - GridView : 열 수를 지정하여 그리드 형태로 표시하는 위젯
+	- crossAxisConut : n //몇개의 열로 나열할지 정함
+    - PageView : 여러 페이지를 좌우로 슬라이드하여 넘길 수 있게 하는 위젯
+    - AppBar,TabBar, Tab, TabbarView : AppBar에 TabBar를 배치하고 Tab과 TabBarView를 배치하여 탭으로 이동하는화면 구현 가능
+	- length : n으로 탭의 개수 정하고 해야댐 AppBar위애
+    - BottomNavigationBar : 하단에 2 ~ 5개의 탭 메뉴를 구성할 수 있게 해주는 위젯
+4-2 위치 정렬 크기를 위한 위젯
+    - Center : 중앙으로 정렬시키는 위젯
+    - Padding 안 쪽 여백을 표현 할때 쓰는 위젯(자기 안의 내용과 테두리 사이의 여백)
+    - Align : 자식 위젯을 정렬 방향을 지정하는 위젯(alignment:Alignment.위치(bottomLeft등))
+    - Expanded : 자식 위젯의 크기를 최대한 확장하는 위젯
+	- flex : n // 비율 2라면 기본 비율의 2배 ex) 2 1 1이라면 50% 25% 25%
+    - SizedBox : 자식 위젯을 특정한 사이즈로 조정하고자 할 때 사용하는 위젯
+    - Card 카드 형태의 모양을 제공해주는 위젯
+	- 그림자의 깊이 (elevation: n) // n정도로 그림자가 생김
+	- 보더 종류(shape: RoundedRectangleBorder) 
+	- 모서리 라운드 정도(borderRadius: BorderRadius.circular(n) // n정도로 모서리 둥글게함
+4-3 버튼 계열 위젯
+    - ElevatedButton : 입체감을 가지는 일반적인 버튼 위젯
+    - TextButton : 평평한 텍스트 버튼 위젯
+    - IconButton : 아이콘을 표시하는 버튼 위젯
+    - FloatingActionButton : 입체감 있는 둥근 버튼 위젯
+    - Text : 글씨를 표시하는 위젯
+    - Image : 이미지를 표현하는 위젯(Image.network('주소') 또는 flutter: assets: -assets/ Image.asset('내가 가진 이미지 위치'))
+    - Icon : 아이콘을 표시하는 위젯
+    - Progress 로딩중이거나 오래 걸린다고 표시하는 위젯
+	- CircularProgressIndicator : 원모양 로딩 위젯
+	- LinearProgressIndicator : 로딩 바 위젯
+    - CircleAvater : 프로필 화면등에 사용되는 원형 위젯
+5. 기본 위젯 2
+
+5-1 입력용 위젯
+    - InputDecoration : 글자를 입력 받는 위젯
+    - checkBox : 선택 체크 체크 해제를 하는 위젯(체크 박스 형태, 다중선택 가능)
+	- onChanged : 상태 바뀔때 실행할 함수
+	- value : 현재 상태 (true, false)
+    - Switch : 선택 체크 체크 해제를 하는 위젯 (스위치 형태, 알람 켜기, 끄기)
+	- onChanged : 상태 바뀔때 실행할 함수
+	- value : 현재 상태 (true, false)
+    - Radio : 선택 그룹 중 하나를 선택할 때 사용하는 위젯
+	- 외형 : 단순 동그라미 (텍스트 포함 X)
+	- 클릭범위 : 버튼만 클릭가능
+	- 직접 텍스트와 정렬해야함
+	- 커스텀 : 따로 구성필요
+    - RadioListTile : 선택 그룹 중 하나를 선택할 때 사용하는 위젯
+	- 외형 : 텍스트까지 포함된 리스트형
+	- 클릭범위 : 리스트 전체가능
+	- 자동으로 정렬됨
+	- title,subtitle등 지원
+    - DropDownButton : 여러 아이템중 하나를 고를 수 있는 형태의 위젯
+	- 버튼을 누르면 목록이 펼처짐
+5-2 다이얼로그
+    - AlertDialog : 사용자 확인을 요구하거나 메시지를 표시하는 용도
+	- 팝업 창을 띄운후 반응 유도 (Text버튼으로)
+    - DatePicker : 날짜를 선택 할 때 사용
+	- 달력 표시 초기 날짜 선택도 가능
+    - showTimePicker : 시간을 선택할때 사용하는위젯
+	- 시계 표시 초기 시간 선택 가능
+5-3 이벤트
+    - GestureDetector과 InkWell : 글자나 그림 같이 이벤트 속성이없는 위젯에서 이벤트를 사용하고자 할때 사용
+	- InkWell : 클릭시 선택된 물결표시
+	- GestureDetector : 탭,드래그, 스와이프등 감지가능, 눌러도 효과 없음
+5-4 애니메이션
+    - Hero : 페이지 전환시 연결되는 애니메이션 지원
+	- 넘어갈때 자연스러운 애니메이션을 지원
+    - AnimatedContainer : 한 화면 내에서 변경된 프로퍼티에 의해 애니메이션
+	- 한 페이지 내에서 크기나 모서리 색깔 변경
+    - SliverAppBar와 SliverFillRemaining : 화면 헤더를 동적으로 표현 (화면의 헤더가 커지고 작아지는걸 동적으로 표현)
+	- SliverAppBar : 스크롤에 따라 접히거나 고정되거나 확장되는 Appbar
+	- SliverFillRemaining : 남은 공간 보통 본문 영역으로 사용
+    - SliverAppBar와 SliverList : ListView를 사용하여 Sliver 효과를 주고자 할때 사용(스크롤에 따라 동적으로 반응하는 헤더 + 리스트 뷰)
+	- SliverAppBar : 스크롤에 따라 접히거나 고정되거나 확장되는 Appbar
+	- SliverList : 일반 ListView처럼 List를 만들지만 Sliver에 최적화된 형태
+    - 둘의 차이점 본문 내용이냐 아님 리스트 출력이냐 이다
+5-5 쿠퍼티노 디자인
+    - 머티리얼 디자인 대신에 ios 디자인 느낌으로 쓰는것(apply)
+	- AppBar -> CupertinoNavigationBar (상단바 -> 내비게이션 바)
+	- Switch -> CupertinoSwitch (동그라미형 스위치)
+	- ElevatedButton -> CupertinoButton (color로 배경지정)
+	- AlertDialog -> CopertinoAlertDialog (다이얼로그를 쿠퍼티노 스타일로 띄움)
+	- Picker -> CupertinoPicker(쿠퍼는 바퀴형 스크롤)
+
+6 내비게이션
+
+6-1 push/pop사용법
+    - push : 새로운 화면을 현재 스택에 올려서 해당 화면으로 이동
+    - pop : 현재 화면을 스택에서 제거후 이전화면으로 이동
+6-2 내비게이션의 동작방식
+    - 스택은 가장 마지막에 push된게 보임 pop은 현재 스택을 제거
+    - initState() : 위젯이 처음 생성될때 한번 호출(초기화 작업)
+    - build() : 위젯이 그려 질때마다(상태가 바뀔때마다) 호출(UI를 구성하는 코드)
+    - dispose() : 위젯이 스크린에서 제거 될때 호출 (pop등, 리소스 정리를 위한 코드)
+6-3 routes를 활용하는 방법
+    - 앱의 여러 화면을 이름으로 등록하고 해당 이름을통해 화면 이동을 가능하게 함
+    - '/': (context) => HomePage()라면 Navigator.pushNamed(context, '/'); 하면 홈페이지로 감
+    - Navigator.pop(context); 하면 전 화면으로 돌아감
+
+8 널 안전한 코드
+    - String ? name;  null값을 허용
+    - ! null 아님을 강제로 보장 (주의!) name! 가능하지만 런타임 에러가남
+    - ?? null이면 기본값 사용  name ?? "기본값"
+    - ?. null호출 (null-safe call) user?.name (프린트로 출력)
+
+    - 널 안전한 코드가 중요한 이유
+	- 앱 크래시 방지
+	- 안정성 높은 앱 개발 가능
+	- 코드 품질 향상
+
+Flutter 3 기준에서는 널 세이프티가 기본이기 때문에 꼭 이해하고 써야 함!
+void printName() {
+  print(name ______ "이름 없음");
+}
+
