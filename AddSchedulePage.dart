@@ -1,4 +1,3 @@
-// 📦 add_schedule_page.dart
 import 'package:flutter/material.dart';
 
 class AddSchedulePage extends StatefulWidget {
@@ -19,13 +18,15 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    final dateText = "${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}";
+    String dateText =
+        "${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}";
 
     return Scaffold(
       appBar: AppBar(
         title: Text("일정 추가"),
         backgroundColor: Colors.pink[100],
       ),
+      backgroundColor: Colors.pink[50],
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -86,7 +87,13 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                   child: Text("저장"),
                   onPressed: () {
                     if (_titleController.text.trim().isNotEmpty) {
-                      Navigator.pop(context, _titleController.text.trim());
+                      Navigator.pop(context, {
+                        'title': _titleController.text.trim(),
+                        'start': _startTimeController.text.trim(),
+                        'end': _endTimeController.text.trim(),
+                        'location': _locationController.text.trim(),
+                        'content': _contentController.text.trim(),
+                      });
                     }
                   },
                 ),
