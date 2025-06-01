@@ -19,6 +19,18 @@ class WeekViewPage extends StatefulWidget {
 class _WeekViewPageState extends State<WeekViewPage> {
   DateTime _focusedWeekStartDate = _getStartOfWeek(DateTime.now());
 
+  final Map<String, String> _holidays = {
+    '01-01': '신정',
+    '03-01': '삼일절',
+    '05-05': '어린이날',
+    '06-06': '현충일',
+    '08-15': '광복절',
+    '10-03': '개천절',
+    '10-09': '한글날',
+    '12-25': '성탄절',
+  };
+
+
   static DateTime _getStartOfWeek(DateTime date) {
     return date.subtract(Duration(days: date.weekday % 7));
   }
@@ -89,7 +101,7 @@ class _WeekViewPageState extends State<WeekViewPage> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.pink[100]),
+              decoration: BoxDecoration(color: Colors.blue[100]),
               child: Text(
                 '달력 옵션',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -98,14 +110,23 @@ class _WeekViewPageState extends State<WeekViewPage> {
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('연도별 달력'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => YearViewPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => YearViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
+
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('월별 달력'),
               onTap: () {
+                Navigator.popUntil(context, (route) => route.isFirst);
                 Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/'); // ← main.dart 기본 홈으로 이동
               },
             ),
             ListTile(
@@ -136,7 +157,7 @@ class _WeekViewPageState extends State<WeekViewPage> {
         ),
       ),
       appBar: AppBar(
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
         title: Text("일정 알리미", style: TextStyle(color: Colors.black, fontSize: 24)),
         centerTitle: true,
         actions: [
@@ -170,16 +191,28 @@ class _WeekViewPageState extends State<WeekViewPage> {
                 childAspectRatio: 1,
                 physics: NeverScrollableScrollPhysics(),
                 children: _getCurrentWeekDates().map((date) {
-                  final color = date.weekday == 7
+                  final dateKey = DateFormat('yyyy-MM-dd').format(date);
+                  final daySchedules = widget.schedules[dateKey] ?? [];
+
+                  final mmdd = DateFormat('MM-dd').format(date);
+                  final holidayName = _holidays[mmdd];
+                  final isHoliday = holidayName != null;
+                  final hasHolidayType = daySchedules.any((s) => s['type'] == '휴가' || s['type'] == '휴일');
+
+                  final color = isHoliday || hasHolidayType || date.weekday == DateTime.sunday
                       ? Colors.red
-                      : date.weekday == 6
+                      : date.weekday == DateTime.saturday
                       ? Colors.blue
                       : Colors.black;
 
-                  final dateKey = DateFormat('yyyy-MM-dd').format(date);
-                  final daySchedules = widget.schedules[dateKey] ?? [];
                   final titleWidget = daySchedules.isNotEmpty
-                      ? Text("- ${daySchedules.first['title']}", style: TextStyle(fontSize: 10))
+                      ? Text(
+                    "- ${daySchedules.first['title']}",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: hasHolidayType ? Colors.red : Colors.black,
+                    ),
+                  )
                       : SizedBox.shrink();
 
                   return GestureDetector(
@@ -191,8 +224,9 @@ class _WeekViewPageState extends State<WeekViewPage> {
                         ),
                       );
 
-                      if (result != null && result is Map<String, String>) {
-                        widget.onAddSchedule(dateKey, result);
+                      if (result != null && result is Map<String, dynamic>) {
+                        final clean = Map<String, String>.from(result);
+                        widget.onAddSchedule(dateKey, clean);
                         setState(() {});
                       }
                     },
@@ -205,12 +239,15 @@ class _WeekViewPageState extends State<WeekViewPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text("${date.day}", style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+                          if (holidayName != null)
+                            Text(holidayName, style: TextStyle(fontSize: 10, color: Colors.red)),
                           titleWidget,
                         ],
                       ),
                     ),
                   );
                 }).toList(),
+
               ),
             ),
           ),
