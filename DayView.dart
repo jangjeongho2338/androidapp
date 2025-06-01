@@ -8,21 +8,12 @@ import 'ImportantView.dart';
 
 class DayViewPage extends StatefulWidget {
   final Map<String, List<Map<String, String>>> schedules;
-
-  final Map<String, String> _holidays = {
-    '01-01': '신정',
-    '03-01': '삼일절',
-    '05-05': '어린이날',
-    '06-06': '현충일',
-    '08-15': '광복절',
-    '10-03': '개천절',
-    '10-09': '한글날',
-    '12-25': '성탄절',
-  };
-
   final Function(String, Map<String, String>) onAddSchedule;
 
-  DayViewPage({required this.schedules, required this.onAddSchedule});
+  DayViewPage({
+    required this.schedules,
+    required this.onAddSchedule,
+  });
 
   @override
   _DayViewPageState createState() => _DayViewPageState();
@@ -52,7 +43,7 @@ class _DayViewPageState extends State<DayViewPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
         title: Text('일정 알리미', style: TextStyle(color: Colors.black, fontSize: 24)),
         centerTitle: true,
         leading: Builder(
@@ -73,26 +64,44 @@ class _DayViewPageState extends State<DayViewPage> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.pink[100]),
+              decoration: BoxDecoration(color: Colors.blue[100]),
               child: Text('달력 옵션', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('연도별 달력'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => YearViewPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => YearViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
+
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('월별 달력'),
               onTap: () {
+
+                Navigator.popUntil(context, (route) => route.isFirst);
                 Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/'); // ← main.dart 기본 홈으로 이동
               },
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('주별 달력'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WeekViewPage(schedules: widget.schedules, onAddSchedule: widget.onAddSchedule))),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => WeekViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
@@ -155,9 +164,12 @@ class _DayViewPageState extends State<DayViewPage> {
             ),
           );
 
-          if (result != null && result is Map<String, String>) {
-            widget.onAddSchedule(dateKey, result);
-            setState(() {});
+          if (result != null && result is Map<String, dynamic>) {
+            final clean = Map<String, String>.from(result); // ✅ 안전 변환
+            final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
+
+            widget.onAddSchedule(dateKey, clean);            // ✅ main 반영
+            setState(() {});                                 // ✅ 화면 갱신
           }
         },
       ),
