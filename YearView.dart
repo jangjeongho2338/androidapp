@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'main.dart'; // CalendarPage
+import 'WeekView.dart';
+import 'DayView.dart';
+import 'ImportantView.dart';
 
 class YearViewPage extends StatefulWidget {
+  final Map<String, List<Map<String, String>>> schedules;
+  final Function(String, Map<String, String>) onAddSchedule;
+
+  YearViewPage({required this.schedules, required this.onAddSchedule});
 
   @override
   _YearViewPageState createState() => _YearViewPageState();
@@ -9,6 +17,17 @@ class YearViewPage extends StatefulWidget {
 
 class _YearViewPageState extends State<YearViewPage> {
   int _selectedYear = DateTime.now().year;
+
+  final Map<String, String> _holidays = {
+    '01-01': '신정',
+    '03-01': '삼일절',
+    '05-05': '어린이날',
+    '06-06': '현충일',
+    '08-15': '광복절',
+    '10-03': '개천절',
+    '10-09': '한글날',
+    '12-25': '성탄절',
+  };
 
   void _goToPreviousYear() {
     setState(() {
@@ -22,101 +41,195 @@ class _YearViewPageState extends State<YearViewPage> {
     });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue[100],
+        title: Text("연도별 달력", style: TextStyle(color: Colors.black, fontSize: 28)),
+        centerTitle: true,
+        elevation: 1,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.black, size: 28),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.search, color: Colors.black, size: 28),
+          )
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue[100]),
+              child: Text('달력 옵션', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            ),
+            ListTile(
+              leading: Icon(Icons.calendar_today),
+              title: Text('연도별 달력'),
+              onTap: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => YearViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.calendar_today),
+              title: Text('월별 달력'),
+              onTap: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => CalendarPage()),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.calendar_today),
+              title: Text('주별 달력'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => WeekViewPage(
+                  schedules: widget.schedules,
+                  onAddSchedule: widget.onAddSchedule,
+                ),
+              )),
+            ),
+            ListTile(
+              leading: Icon(Icons.calendar_today),
+              title: Text('일별 달력'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => DayViewPage(
+                  schedules: widget.schedules,
+                  onAddSchedule: widget.onAddSchedule,
+                ),
+              )),
+            ),
+            ListTile(
+              leading: Icon(Icons.calendar_today),
+              title: Text('주요 일정 보기'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportantViewPage())),
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(icon: const Icon(Icons.arrow_left), onPressed: _goToPreviousYear),
+              Text('$_selectedYear년', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              IconButton(icon: const Icon(Icons.arrow_right), onPressed: _goToNextYear),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 12,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 24,
+                childAspectRatio: 0.9,
+              ),
+              itemBuilder: (context, index) {
+                final month = index + 1;
+                return _buildMiniCalendar(month);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMiniCalendar(int month) {
     final firstDay = DateTime(_selectedYear, month, 1);
-    final startWeekday = firstDay.weekday % 7;
     final daysInMonth = DateTime(_selectedYear, month + 1, 0).day;
-    final List<Widget> cells = [];
+    final startWeekday = firstDay.weekday % 7;
 
-    // 요일 헤더
+    final List<Widget> cells = [];
     final days = ['일', '월', '화', '수', '목', '금', '토'];
+
     cells.addAll(days.map((d) => Center(
-      child: Text(d,
-          style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: d == '일'
-                  ? Colors.red
-                  : d == '토'
-                  ? Colors.blue
-                  : Colors.black)),
+      child: Text(
+        d,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+      ),
     )));
 
-    // 빈칸
     for (int i = 0; i < startWeekday; i++) {
-      cells.add(Container());
+      cells.add(const SizedBox.shrink());
     }
 
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(_selectedYear, month, day);
-      final color = date.weekday == 7
-          ? Colors.red
-          : date.weekday == 6
-          ? Colors.blue
-          : Colors.black;
+    for (int i = 1; i <= daysInMonth; i++) {
+      final date = DateTime(_selectedYear, month, i);
+      final mmdd = "${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+      final weekday = date.weekday % 7;
+      final isHoliday = _holidays.containsKey(mmdd);
 
-      cells.add(Container(
-        alignment: Alignment.topLeft,
+      final hasHolidayType = (widget.schedules[DateFormat('yyyy-MM-dd').format(date)] ?? [])
+          .any((s) => s['type'] == '휴가' || s['type'] == '휴일');
+
+      final color = isHoliday || hasHolidayType || weekday == 0
+          ? Colors.red
+          : (weekday == 6 ? Colors.blue : Colors.black);
+
+      cells.add(Center(
         child: Text(
-          '$day',
+          '$i',
           style: TextStyle(fontSize: 10, color: color),
         ),
       ));
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('${month}월', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        Container(
-          margin: EdgeInsets.symmetric(vertical: 4),
-          height: 120,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CalendarPage(
+              year: _selectedYear,
+              month: month,
+              schedules: widget.schedules,
+              onAddSchedule: widget.onAddSchedule, // ✅ 이거 추가!
+            ),
           ),
-          child: GridView.count(
-            crossAxisCount: 7,
-            padding: EdgeInsets.all(4),
-            physics: NeverScrollableScrollPhysics(),
-            children: cells,
-          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(12),
         ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.pink[100],
-        title: Text("연도별 달력", style: TextStyle(color: Colors.black, fontSize: 24)),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(icon: Icon(Icons.arrow_left), onPressed: _goToPreviousYear),
-                Text('${_selectedYear}년',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                IconButton(icon: Icon(Icons.arrow_right), onPressed: _goToNextYear),
-              ],
+        child: Column(
+          children: [
+            Text(
+              '$month월',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-          ),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              childAspectRatio: 0.9,
-              padding: EdgeInsets.all(8),
-              children: List.generate(12, (index) => _buildMiniCalendar(index + 1)),
+            const SizedBox(height: 8),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 7,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.0,
+                children: cells,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
