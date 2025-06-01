@@ -16,6 +16,11 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   TextEditingController _locationController = TextEditingController();
   TextEditingController _contentController = TextEditingController();
 
+  final List<String> _scheduleTypes = [
+    '기념일', '업무', '수업', '휴가', '당직', '휴일', '회의', '약속'
+  ];
+  String? _selectedType;
+
   @override
   Widget build(BuildContext context) {
     String dateText =
@@ -24,9 +29,8 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("일정 추가"),
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
       ),
-      backgroundColor: Colors.pink[50],
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -34,6 +38,27 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
           children: [
             Text("제목:", style: TextStyle(fontSize: 16)),
             TextField(controller: _titleController),
+
+            SizedBox(height: 20),
+            Text("일정 종류:", style: TextStyle(fontSize: 16)),
+            DropdownButtonFormField<String>(
+              value: _selectedType,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              items: _scheduleTypes.map((type) {
+                return DropdownMenuItem<String>(
+                  value: type,
+                  child: Text(type),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedType = value;
+                });
+              },
+            ),
 
             SizedBox(height: 20),
             Text("날짜 및 시간:", style: TextStyle(fontSize: 16)),
@@ -89,6 +114,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                     if (_titleController.text.trim().isNotEmpty) {
                       Navigator.pop(context, {
                         'title': _titleController.text.trim(),
+                        'type': _selectedType,
                         'start': _startTimeController.text.trim(),
                         'end': _endTimeController.text.trim(),
                         'location': _locationController.text.trim(),
