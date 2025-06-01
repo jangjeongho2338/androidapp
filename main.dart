@@ -24,14 +24,26 @@ class MyApp extends StatelessWidget {
 }
 
 class CalendarPage extends StatefulWidget {
+  final int? year;
+  final int? month;
+  final Map<String, List<Map<String, String>>>? schedules;
+  final Function(String, Map<String, String>)? onAddSchedule;
+
+  const CalendarPage({
+    this.year,
+    this.month,
+    this.schedules,
+    this.onAddSchedule,
+  });
 
   @override
   _CalendarPageState createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  DateTime _focusedDate = DateTime.now();
-  Map<String, List<Map<String, String>>> _schedules = {};
+  DateTime? _selectedDateForView;
+  late DateTime _focusedDate;
+  late Map<String, List<Map<String, String>>> _schedules;
 
   final Map<String, String> _holidays = {
     '01-01': '신정',
@@ -44,8 +56,18 @@ class _CalendarPageState extends State<CalendarPage> {
     '12-25': '성탄절',
   };
 
-
   List<String> weekDays = ['일 Sun', '월 Mon', '화 Tue', '수 Wed', '목 Thu', '금 Fri', '토 Sat'];
+
+  @override
+  void initState() {
+    super.initState();
+    _focusedDate = DateTime(
+      widget.year ?? DateTime.now().year,
+      widget.month ?? DateTime.now().month,
+    );
+    _schedules = widget.schedules ?? {};
+    _selectedDateForView = DateTime.now(); // ← 이 줄 추가!
+  }
 
   List<Widget> _buildCalendar(DateTime date) {
     List<Widget> dayWidgets = [];
@@ -76,37 +98,29 @@ class _CalendarPageState extends State<CalendarPage> {
     for (int day = 1; day <= daysInMonth; day++) {
       final currentDate = DateTime(date.year, date.month, day);
       final dateKey = DateFormat('yyyy-MM-dd').format(currentDate);
-
       final weekday = currentDate.weekday % 7;
-      final isToday = DateTime.now().year == currentDate.year &&
-          DateTime.now().month == currentDate.month &&
-          DateTime.now().day == currentDate.day;
 
       final mmdd = DateFormat('MM-dd').format(currentDate);
       final holiday = _holidays[mmdd];
-      final color = (holiday != null || weekday == 0)
+
+      final isHolidayType = _schedules[dateKey]?.any(
+            (e) => e['type'] == '휴가' || e['type'] == '휴일',
+      ) ??
+          false;
+
+      final color = (holiday != null || isHolidayType || weekday == 0)
           ? Colors.red
           : (weekday == 6 ? Colors.blue : Colors.black);
 
       dayWidgets.add(
         GestureDetector(
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AddSchedulePage(selectedDate: currentDate),
-              ),
-            );
-
-            if (result != null && result is Map<String, String>) {
-              setState(() {
-                _schedules.putIfAbsent(dateKey, () => []).add(result);
-              });
-            }
+          onTap: () {
+            setState(() {
+              _selectedDateForView = currentDate;
+            });
           },
           onLongPress: () {
             final schedules = _schedules[dateKey];
-
             if (schedules != null && schedules.isNotEmpty) {
               showDialog(
                 context: context,
@@ -114,7 +128,8 @@ class _CalendarPageState extends State<CalendarPage> {
                   title: Text("${DateFormat('yyyy-MM-dd').format(currentDate)} 일정"),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: schedules.map((e) => ListTile(
+                    children: schedules
+                        .map((e) => ListTile(
                       title: Text("- ${e['title']}"),
                       onTap: () {
                         Navigator.pop(context);
@@ -125,7 +140,8 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         );
                       },
-                    )).toList(),
+                    ))
+                        .toList(),
                   ),
                 ),
               );
@@ -134,7 +150,12 @@ class _CalendarPageState extends State<CalendarPage> {
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
-              color: isToday ? Colors.yellow[200] : Colors.white,
+              color: _selectedDateForView != null &&
+                  _selectedDateForView!.year == currentDate.year &&
+                  _selectedDateForView!.month == currentDate.month &&
+                  _selectedDateForView!.day == currentDate.day
+                  ? Colors.lightBlue[100]  // 선택된 날짜 표시
+                  : Colors.white,
             ),
             padding: EdgeInsets.all(4),
             child: Column(
@@ -143,14 +164,24 @@ class _CalendarPageState extends State<CalendarPage> {
                 Text('$day', style: TextStyle(color: color, fontWeight: FontWeight.w600)),
                 if (holiday != null)
                   Text(holiday, style: TextStyle(fontSize: 10, color: Colors.red)),
-                ...?_schedules[dateKey]?.map((event) => Text(
-                  "- ${event['title']}",
-                  style: TextStyle(fontSize: 10),
-                  overflow: TextOverflow.ellipsis,
-                )),
+                ...?_schedules[dateKey]?.map((event) {
+                  final title = event['title'] ?? '';
+                  final type = event['type'] ?? '';
+                  final isRed = type == '휴가' || type == '휴일';
+                  final itemColor = isRed
+                      ? Colors.red
+                      : (weekday == 0
+                      ? Colors.red
+                      : (weekday == 6 ? Colors.blue : Colors.black));
+
+                  return Text(
+                    "- $title",
+                    style: TextStyle(fontSize: 10, color: itemColor),
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }),
               ],
             ),
-
           ),
         ),
       );
@@ -177,7 +208,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
         title: Text("일정 알리미", style: TextStyle(color: Colors.black, fontSize: 28)),
         centerTitle: true,
         elevation: 1,
@@ -199,18 +230,30 @@ class _CalendarPageState extends State<CalendarPage> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.pink[100]),
+              decoration: BoxDecoration(color: Colors.blue[100]),
               child: Text('달력 옵션', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('연도별 달력'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => YearViewPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => YearViewPage(
+                    schedules: _schedules,
+                    onAddSchedule: (dateKey, schedule) {
+                      setState(() {
+                        _schedules.putIfAbsent(dateKey, () => []).add(schedule);
+                      });
+                    },
+                  ),
+                ),
+              ),
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('월별 달력'),
-              onTap: () {}, // 추후 추가 가능
+              onTap: () {}, // 현재 페이지
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
@@ -221,7 +264,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   builder: (_) => WeekViewPage(
                     schedules: _schedules,
                     onAddSchedule: (dateKey, schedule) {
-                      _schedules.putIfAbsent(dateKey, () => []).add(schedule);
+                      setState(() {
+                        _schedules.putIfAbsent(dateKey, () => []).add(schedule);
+                      });
                     },
                   ),
                 ),
@@ -244,7 +289,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               ),
             ),
-
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('주요 일정 보기'),
@@ -253,7 +297,6 @@ class _CalendarPageState extends State<CalendarPage> {
           ],
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Column(
@@ -267,13 +310,89 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
             SizedBox(height: 6),
-            Expanded(
+            Flexible(
+              flex: 8, // 전체 높이 중 60% 정도 차지
               child: GridView.count(
                 crossAxisCount: 7,
                 childAspectRatio: 0.95,
+                physics: NeverScrollableScrollPhysics(),
                 children: _buildCalendar(_focusedDate),
               ),
             ),
+
+            if (_selectedDateForView != null) ...[
+              Divider(thickness: 1),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Text(
+                  "${_selectedDateForView!.month}월 ${_selectedDateForView!.day}일 ${["일", "월", "화", "수", "목", "금", "토"][_selectedDateForView!.weekday % 7]}요일 주요일정",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Flexible(
+                flex: 3, // 일정 리스트 높이 조정
+                child: ListView(
+                  padding: EdgeInsets.only(bottom: 12),
+                  children: [
+                    ...?_schedules[DateFormat('yyyy-MM-dd').format(_selectedDateForView!)]?.map((e) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text("${e['start']} ~ ${e['end']}", style: TextStyle(fontSize: 14)),
+                          SizedBox(width: 10),
+                          Text("${e['type']}", style: TextStyle(fontSize: 14)),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "${e['title']}",
+                              style: TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ScheduleDetailPage(schedule: e),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color.fromARGB(255, 245, 238, 255), // 연보라색 배경
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              textStyle: TextStyle(fontSize: 14),
+                            ),
+                            child: Text("상세 보기"),
+                          ),
+                        ],
+                      ),
+                    )).toList() ?? [],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => AddSchedulePage(selectedDate: _selectedDateForView!)),
+                          );
+                          if (result != null && result is Map<String, dynamic>) {
+                            final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDateForView!);
+                            setState(() {
+                              _schedules.putIfAbsent(dateKey, () => []).add(Map<String, String>.from(result));
+                            });
+                          }
+                        },
+                        child: Text("새로운 일정 생성"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ]
+
           ],
         ),
       ),
