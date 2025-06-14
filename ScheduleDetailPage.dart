@@ -19,7 +19,7 @@ class ScheduleDetailPage extends StatelessWidget {
           children: [
             Text("제목 : ${schedule['title']}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             SizedBox(height: 12),
-            Text("종류: ${schedule['type'] ?? ''}"), // ✅ 일정 종류
+            Text("종류: ${schedule['type'] ?? ''}"),
             SizedBox(height: 8),
             Text("시간 : ${schedule['start']} ~ ${schedule['end']}"),
             SizedBox(height: 8),

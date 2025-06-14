@@ -29,24 +29,15 @@ class _YearViewPageState extends State<YearViewPage> {
     '12-25': '성탄절',
   };
 
-  void _goToPreviousYear() {
-    setState(() {
-      _selectedYear--;
-    });
-  }
-
-  void _goToNextYear() {
-    setState(() {
-      _selectedYear++;
-    });
-  }
+  void _goToPreviousYear() => setState(() => _selectedYear--);
+  void _goToNextYear() => setState(() => _selectedYear++);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[100],
-        title: Text("연도별 달력", style: TextStyle(color: Colors.black, fontSize: 28)),
+        title: Text("일정 알리미", style: TextStyle(color: Colors.black, fontSize: 28)),
         centerTitle: true,
         elevation: 1,
         leading: Builder(
@@ -55,12 +46,6 @@ class _YearViewPageState extends State<YearViewPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.search, color: Colors.black, size: 28),
-          )
-        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -94,27 +79,41 @@ class _YearViewPageState extends State<YearViewPage> {
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('주별 달력'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => WeekViewPage(
-                  schedules: widget.schedules,
-                  onAddSchedule: widget.onAddSchedule,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => WeekViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
                 ),
-              )),
+              ),
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('일별 달력'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => DayViewPage(
-                  schedules: widget.schedules,
-                  onAddSchedule: widget.onAddSchedule,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DayViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
                 ),
-              )),
+              ),
             ),
             ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text('주요 일정 보기'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportantViewPage())),
+              leading: Icon(Icons.star),
+              title: Text('전체 일정 보기'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ImportantViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -125,17 +124,17 @@ class _YearViewPageState extends State<YearViewPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(icon: const Icon(Icons.arrow_left), onPressed: _goToPreviousYear),
-              Text('$_selectedYear년', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              IconButton(icon: const Icon(Icons.arrow_right), onPressed: _goToNextYear),
+              IconButton(icon: Icon(Icons.arrow_left), onPressed: _goToPreviousYear),
+              Text('$_selectedYear년', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              IconButton(icon: Icon(Icons.arrow_right), onPressed: _goToNextYear),
             ],
           ),
           const SizedBox(height: 12),
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               itemCount: 12,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 24,
@@ -161,14 +160,11 @@ class _YearViewPageState extends State<YearViewPage> {
     final days = ['일', '월', '화', '수', '목', '금', '토'];
 
     cells.addAll(days.map((d) => Center(
-      child: Text(
-        d,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-      ),
+      child: Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
     )));
 
     for (int i = 0; i < startWeekday; i++) {
-      cells.add(const SizedBox.shrink());
+      cells.add(SizedBox.shrink());
     }
 
     for (int i = 1; i <= daysInMonth; i++) {
@@ -185,45 +181,44 @@ class _YearViewPageState extends State<YearViewPage> {
           : (weekday == 6 ? Colors.blue : Colors.black);
 
       cells.add(Center(
-        child: Text(
-          '$i',
-          style: TextStyle(fontSize: 10, color: color),
-        ),
+        child: Text('$i', style: TextStyle(fontSize: 10, color: color)),
       ));
     }
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => CalendarPage(
               year: _selectedYear,
               month: month,
               schedules: widget.schedules,
-              onAddSchedule: widget.onAddSchedule, // ✅ 이거 추가!
+              onAddSchedule: (dateKey, schedule) {
+                setState(() {
+                  widget.schedules.putIfAbsent(dateKey, () => []).add(schedule);
+                });
+                widget.onAddSchedule(dateKey, schedule);
+              },
             ),
           ),
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            Text(
-              '$month월',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
+            Text('$month월', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            SizedBox(height: 8),
             Expanded(
               child: GridView.count(
                 crossAxisCount: 7,
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+                physics: NeverScrollableScrollPhysics(),
                 childAspectRatio: 1.0,
                 children: cells,
               ),

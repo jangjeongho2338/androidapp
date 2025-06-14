@@ -52,12 +52,6 @@ class _DayViewPageState extends State<DayViewPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          )
-        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -79,13 +73,11 @@ class _DayViewPageState extends State<DayViewPage> {
                   ),
                 ),
               ),
-
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text('월별 달력'),
               onTap: () {
-
                 Navigator.popUntil(context, (route) => route.isFirst);
                 Navigator.pop(context);
               },
@@ -109,9 +101,17 @@ class _DayViewPageState extends State<DayViewPage> {
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text('주요 일정 보기'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportantViewPage())),
+              leading: Icon(Icons.star),
+              title: Text('전체 일정 보기'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ImportantViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -154,7 +154,7 @@ class _DayViewPageState extends State<DayViewPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.pink[200],
+        backgroundColor: Colors.blue[200],
         child: Icon(Icons.add),
         onPressed: () async {
           final result = await Navigator.push(
@@ -165,11 +165,11 @@ class _DayViewPageState extends State<DayViewPage> {
           );
 
           if (result != null && result is Map<String, dynamic>) {
-            final clean = Map<String, String>.from(result); // ✅ 안전 변환
+            final clean = Map<String, String>.from(result);
             final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
-            widget.onAddSchedule(dateKey, clean);            // ✅ main 반영
-            setState(() {});                                 // ✅ 화면 갱신
+            widget.onAddSchedule(dateKey, clean);
+            setState(() {});
           }
         },
       ),

@@ -114,7 +114,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                     if (_titleController.text.trim().isNotEmpty) {
                       Navigator.pop(context, {
                         'title': _titleController.text.trim(),
-                        'type': _selectedType,
+                        'type': _selectedType ?? '',
                         'start': _startTimeController.text.trim(),
                         'end': _endTimeController.text.trim(),
                         'location': _locationController.text.trim(),

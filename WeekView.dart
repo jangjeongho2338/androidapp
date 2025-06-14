@@ -30,7 +30,6 @@ class _WeekViewPageState extends State<WeekViewPage> {
     '12-25': '성탄절',
   };
 
-
   static DateTime _getStartOfWeek(DateTime date) {
     return date.subtract(Duration(days: date.weekday % 7));
   }
@@ -63,7 +62,6 @@ class _WeekViewPageState extends State<WeekViewPage> {
         items.add(
           ListTile(
             title: Text("${entry['title']} - ${date.month}월 ${date.day}일 ${entry['time'] ?? ''}"),
-
             onTap: () {
               Navigator.push(
                 context,
@@ -102,10 +100,7 @@ class _WeekViewPageState extends State<WeekViewPage> {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue[100]),
-              child: Text(
-                '달력 옵션',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
+              child: Text('달력 옵션', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
@@ -119,7 +114,6 @@ class _WeekViewPageState extends State<WeekViewPage> {
                   ),
                 ),
               ),
-
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
@@ -147,11 +141,18 @@ class _WeekViewPageState extends State<WeekViewPage> {
                 ),
               ),
             ),
-
             ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text('주요 일정 보기'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportantViewPage())),
+              leading: Icon(Icons.star),
+              title: Text('전체 일정 보기'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ImportantViewPage(
+                    schedules: widget.schedules,
+                    onAddSchedule: widget.onAddSchedule,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -160,12 +161,6 @@ class _WeekViewPageState extends State<WeekViewPage> {
         backgroundColor: Colors.blue[100],
         title: Text("일정 알리미", style: TextStyle(color: Colors.black, fontSize: 24)),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          )
-        ],
       ),
       body: Column(
         children: [
@@ -206,13 +201,7 @@ class _WeekViewPageState extends State<WeekViewPage> {
                       : Colors.black;
 
                   final titleWidget = daySchedules.isNotEmpty
-                      ? Text(
-                    "- ${daySchedules.first['title']}",
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: hasHolidayType ? Colors.red : Colors.black,
-                    ),
-                  )
+                      ? Text("- ${daySchedules.first['title']}", style: TextStyle(fontSize: 10))
                       : SizedBox.shrink();
 
                   return GestureDetector(
@@ -247,7 +236,6 @@ class _WeekViewPageState extends State<WeekViewPage> {
                     ),
                   );
                 }).toList(),
-
               ),
             ),
           ),

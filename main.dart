@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'AddSchedulePage.dart';
 import 'ScheduleDetailPage.dart';
@@ -7,8 +9,18 @@ import 'YearView.dart';
 import 'WeekView.dart';
 import 'DayView.dart';
 import 'ImportantView.dart';
+import 'Schedule.dart'; // Hive 메소드
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final dir = await getApplicationDocumentsDirectory();
+  Hive.init(dir.path);
+  Hive.registerAdapter(ScheduleAdapter());
+
+  await Hive.deleteBoxFromDisk('schedules'); // ✅ 이 줄 추가: 기존 데이터 삭제
+  await Hive.openBox<Schedule>('schedules');
+
   runApp(MyApp());
 }
 
@@ -34,6 +46,7 @@ class CalendarPage extends StatefulWidget {
     this.month,
     this.schedules,
     this.onAddSchedule,
+    super.key,
   });
 
   @override
@@ -66,9 +79,8 @@ class _CalendarPageState extends State<CalendarPage> {
       widget.month ?? DateTime.now().month,
     );
     _schedules = widget.schedules ?? {};
-    _selectedDateForView = DateTime.now(); // ← 이 줄 추가!
+    _selectedDateForView = DateTime.now();
   }
-
   List<Widget> _buildCalendar(DateTime date) {
     List<Widget> dayWidgets = [];
     DateTime firstDayOfMonth = DateTime(date.year, date.month, 1);
@@ -105,13 +117,11 @@ class _CalendarPageState extends State<CalendarPage> {
 
       final isHolidayType = _schedules[dateKey]?.any(
             (e) => e['type'] == '휴가' || e['type'] == '휴일',
-      ) ??
-          false;
+      ) ?? false;
 
       final color = (holiday != null || isHolidayType || weekday == 0)
           ? Colors.red
           : (weekday == 6 ? Colors.blue : Colors.black);
-
       dayWidgets.add(
         GestureDetector(
           onTap: () {
@@ -128,8 +138,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   title: Text("${DateFormat('yyyy-MM-dd').format(currentDate)} 일정"),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: schedules
-                        .map((e) => ListTile(
+                    children: schedules.map((e) => ListTile(
                       title: Text("- ${e['title']}"),
                       onTap: () {
                         Navigator.pop(context);
@@ -140,8 +149,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         );
                       },
-                    ))
-                        .toList(),
+                    )).toList(),
                   ),
                 ),
               );
@@ -154,7 +162,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   _selectedDateForView!.year == currentDate.year &&
                   _selectedDateForView!.month == currentDate.month &&
                   _selectedDateForView!.day == currentDate.day
-                  ? Colors.lightBlue[100]  // 선택된 날짜 표시
+                  ? Colors.lightBlue[100]
                   : Colors.white,
             ),
             padding: EdgeInsets.all(4),
@@ -170,10 +178,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   final isRed = type == '휴가' || type == '휴일';
                   final itemColor = isRed
                       ? Colors.red
-                      : (weekday == 0
-                      ? Colors.red
-                      : (weekday == 6 ? Colors.blue : Colors.black));
-
+                      : (weekday == 0 ? Colors.red : (weekday == 6 ? Colors.blue : Colors.black));
                   return Text(
                     "- $title",
                     style: TextStyle(fontSize: 10, color: itemColor),
@@ -189,7 +194,6 @@ class _CalendarPageState extends State<CalendarPage> {
 
     return dayWidgets;
   }
-
   void _goToPreviousMonth() {
     setState(() {
       _focusedDate = DateTime(_focusedDate.year, _focusedDate.month - 1);
@@ -218,12 +222,6 @@ class _CalendarPageState extends State<CalendarPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.search, color: Colors.black, size: 28),
-          )
-        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -249,11 +247,6 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 ),
               ),
-            ),
-            ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text('월별 달력'),
-              onTap: () {}, // 현재 페이지
             ),
             ListTile(
               leading: Icon(Icons.calendar_today),
@@ -290,9 +283,21 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text('주요 일정 보기'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportantViewPage())),
+              leading: Icon(Icons.star),
+              title: Text('전체 일정 보기'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ImportantViewPage(
+                    schedules: _schedules,
+                    onAddSchedule: (dateKey, schedule) {
+                      setState(() {
+                        _schedules.putIfAbsent(dateKey, () => []).add(schedule);
+                      });
+                    },
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -311,7 +316,7 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
             SizedBox(height: 6),
             Flexible(
-              flex: 8, // 전체 높이 중 60% 정도 차지
+              flex: 8,
               child: GridView.count(
                 crossAxisCount: 7,
                 childAspectRatio: 0.95,
@@ -319,18 +324,18 @@ class _CalendarPageState extends State<CalendarPage> {
                 children: _buildCalendar(_focusedDate),
               ),
             ),
-
             if (_selectedDateForView != null) ...[
               Divider(thickness: 1),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Text(
-                  "${_selectedDateForView!.month}월 ${_selectedDateForView!.day}일 ${["일", "월", "화", "수", "목", "금", "토"][_selectedDateForView!.weekday % 7]}요일 주요일정",
+                  "${_selectedDateForView!.month}월 ${_selectedDateForView!.day}일 "
+                      "${["일", "월", "화", "수", "목", "금", "토"][_selectedDateForView!.weekday % 7]}요일 주요일정",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               Flexible(
-                flex: 3, // 일정 리스트 높이 조정
+                flex: 3,
                 child: ListView(
                   padding: EdgeInsets.only(bottom: 12),
                   children: [
@@ -339,13 +344,13 @@ class _CalendarPageState extends State<CalendarPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text("${e['start']} ~ ${e['end']}", style: TextStyle(fontSize: 14)),
+                          Text("${e['start'] ?? ''} ~ ${e['end'] ?? ''}", style: TextStyle(fontSize: 14)),
                           SizedBox(width: 10),
-                          Text("${e['type']}", style: TextStyle(fontSize: 14)),
+                          Text("${e['type'] ?? ''}", style: TextStyle(fontSize: 14)),
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              "${e['title']}",
+                              "${e['title'] ?? ''}",
                               style: TextStyle(fontSize: 14),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -361,7 +366,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color.fromARGB(255, 245, 238, 255), // 연보라색 배경
+                              backgroundColor: Color.fromARGB(255, 245, 238, 255),
                               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                               textStyle: TextStyle(fontSize: 14),
                             ),
@@ -369,20 +374,26 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         ],
                       ),
-                    )).toList() ?? [],
+                    )) ??
+                        [],
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       child: ElevatedButton(
                         onPressed: () async {
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => AddSchedulePage(selectedDate: _selectedDateForView!)),
+                            MaterialPageRoute(
+                              builder: (_) => AddSchedulePage(selectedDate: _selectedDateForView!),
+                            ),
                           );
                           if (result != null && result is Map<String, dynamic>) {
                             final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDateForView!);
+                            final data = Map<String, String>.from(result);
                             setState(() {
-                              _schedules.putIfAbsent(dateKey, () => []).add(Map<String, String>.from(result));
+                              _schedules.putIfAbsent(dateKey, () => []).add(data);
                             });
+                            final box = Hive.box<Schedule>('schedules');
+                            box.add(Schedule.fromMap(data)); // ✅ 이렇게 고치세요
                           }
                         },
                         child: Text("새로운 일정 생성"),
@@ -392,10 +403,11 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               ),
             ]
-
           ],
         ),
       ),
     );
   }
 }
+
+
