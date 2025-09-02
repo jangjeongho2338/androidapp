@@ -33,7 +33,6 @@ class _WeekViewPageState extends State<WeekViewPage> {
   static DateTime _getStartOfWeek(DateTime date) {
     return date.subtract(Duration(days: date.weekday % 7));
   }
-
   void _goToPreviousWeek() {
     setState(() {
       _focusedWeekStartDate = _focusedWeekStartDate.subtract(Duration(days: 7));
@@ -253,3 +252,4 @@ class _WeekViewPageState extends State<WeekViewPage> {
     );
   }
 }
+
